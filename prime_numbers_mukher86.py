@@ -4,7 +4,7 @@ Assignment: 4.2.4. Prime Numbers
 Date: 09/19/2024
 
 Description:
-he program defines a function is_prime() to determine whether a given number is prime. 
+The program defines a function is_prime() to determine whether a given number is prime. 
 It checks for divisibility starting from 2 up to the square root of the number. 
 If the number is divisible by any number in this range, it's not prime; otherwise, it is.
 
