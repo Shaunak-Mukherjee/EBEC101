@@ -1,13 +1,13 @@
 """
 Assignment: 12.2.1. Final Project
 Author: Shaunak Mukherjee, mukher86@purdue.edu
-Date: 11/27/2024
+Date: 12/02/2024
 
 Description:
 This is the final project - Code Breakers. 
 
 Contributors:
-    Name, login@purdue.edu [NA]
+    [NA]
 
 My contributor(s) helped me:
     [ ] understand the assignment expectations without
@@ -26,6 +26,7 @@ Academic Integrity Statement:
     submitting is my own original work.
 """
 
+# import libraries
 import random
 import os
 import json
@@ -36,16 +37,16 @@ import re
 # Define function to generate the secret code
 def generate_solution(min_length=4, max_length=6):
     length = random.randint(min_length, max_length)
-    return ''.join(random.choices('012345', k=length))
-    
+    return ''.join(random.choices('012345', k=length))   
 
+# Main game class
 class CodeBreakerGame:
     def __init__(self):
         self.solution = None
         self.attempts_left = 10
         self.history = []
 
-
+    # Saving game function
     def save_game(self):
         save_manager = SaveManager()
         save_slots, file_map = save_manager.list_save_files()
@@ -55,7 +56,6 @@ class CodeBreakerGame:
         for idx, slot in enumerate(save_slots, start=1):
             print(f"   {idx}: {slot}")
         
-
         while True:
             choice = input("What save would you like to overwrite (1, 2, 3, or c to cancel): ").strip().lower()
 
@@ -64,16 +64,12 @@ class CodeBreakerGame:
                 display_board(self.solution, self.history, attempts_left_none=False)
 
                 initial_guess = input("What is your guess (q to quit, s to save and quit): ").strip()
-                return 
-                
-            
-
+                return             
 
             if not choice.isdigit() or int(choice) < 1 or int(choice) > len(save_slots):
                 print("That is an invalid selection.")
                 continue
 
-            # Prompt for player name
             while True:
                 player_name = input("What is your name (no special characters): ").strip()
                 if re.match(r'^[a-zA-Z0-9 ]+$', player_name):
@@ -81,7 +77,6 @@ class CodeBreakerGame:
                 else:
                     print("That is an invalid name.")
 
-            # Save game details
             slot_index = int(choice) - 1
             filename = f"save_slot_{slot_index + 1}.json"
             save_data = {
@@ -94,13 +89,10 @@ class CodeBreakerGame:
 
             with open(filename, "w") as file:
                 json.dump(save_data, file)
-            # print(f"Game saved to slot {choice} as '{player_name}' at {save_data['date']}.")
             print(f"Game saved in slot {choice} as {player_name}.")
             return
 
-
-
-                
+    # Loading game function           
     def load_game(self):
         save_slots, file_map = SaveManager.list_save_files()
 
@@ -113,36 +105,45 @@ class CodeBreakerGame:
 
         for idx, slot in enumerate(save_slots, start=1):
             print(f"   {idx}: {slot}")
-        # print("   c: Cancel")
-
+        
         while True:
             choice = input("What save would you like to load (1, 2, 3, or c to cancel): ").strip().lower()
+            
             if choice == 'c':
                 print("cancelled")
                 return None, None, None
-
-            if choice.isdigit() and 1 <= int(choice) <= len(save_slots):
+            
+            if not choice.isdigit():
+                print("That is an invalid selection")
+                continue
+            
+            choice_num = int(choice)
+            if 1 <= choice_num <= len(save_slots):
                 selected_slot = save_slots[int(choice) - 1]
-                filename = file_map.get(selected_slot, None)
-            if filename:
-                try:
-                    if not os.path.isfile(filename) or os.stat(filename).st_size == 0:
+                filename = None
+
+                if selected_slot == "empty":
+                    print("That file is empty!")
+                    continue
+                filename = file_map.get(selected_slot, None)    
+            
+                if filename:
+                    if not os.path.isfile(filename):  
+                        print("That file doesn't exist.")
+                        continue
+                    
+                    if os.stat(filename).st_size == 0:  
                         print("That file is empty!")
                         continue
-
                     with open(filename, "r") as file:
                         data = json.load(file)
 
                     return data.get('solution'), data.get('attempts_left'), data.get('history')
-                except (IOError, json.JSONDecodeError) as e:
-                    print(f"Error loading game: {e}")
-                    return None, None, None
 
             else:
-                print("That file is empty!")
+                print("That is an invalid selection.")
 
-
-
+# Save Manager class
 class SaveManager:
     @staticmethod
     def list_save_files():
@@ -163,12 +164,12 @@ class SaveManager:
 
         return slots, file_map
 
-
+# Class Game Menu
 class GameMenu:
     def __init__(self):
         self.game = CodeBreakerGame()
 
-    # Display the main menu
+    # Show main menu
     def display_menu(self):
         print("\nMenu:")
         print("--------------------------------------------------------------------------")
@@ -177,7 +178,7 @@ class GameMenu:
         print("   3: Load Game")
         print("   4: Quit")
 
-    # Display the game rules
+    # Show game rules
     def display_rules(self):
         print("\nRules:")
         print("--------------------------------------------------------------------------")
@@ -194,7 +195,7 @@ class GameMenu:
         print("   c. Each digit of the solution code or guess is only counted once in the")
         print("      red or white pins.")
 
-    # Get player's choice from the menu
+    # Player's choice 
     def get_player_choice(self):
         while True:
             choice = input("Choice: ")
@@ -204,46 +205,34 @@ class GameMenu:
             self.display_menu()
 
 
+# Game GUI
 def display_board(solution, history, attempts_left_none=False):
     
-    print("   ==================+=====")
-    
-    
+    print("   ==================+=====")   
     if not attempts_left_none:
         if not history or solution != history[-1][0]:
             print("    o  o  o  o  o  o | R W  ")  
         else:
             print("    " + "  ".join(k for k in list(solution.ljust(6, 'o'))) + " | R W  ")
-        # print("   ==================+=====")
+
     else:
         print("    " + "  ".join(k for k in list(solution.ljust(6, 'o'))) + " | R W  ")
-        # print("   ==================+=====")
     print("   ==================+=====")
 
-    
-
-    # If there is a winning guess
     if history and history[-1][0] == solution:
         
         guess, feedback = history[-1]
         guess_display = "    " + "  ".join(guess.ljust(6, 'o'))
         feedback_display = f"{feedback[0]} {feedback[1]}"
-        # print(f"{guess_display} | {feedback_display}  ")
-        # history = history[1:]  # Remove the winning guess from the history
-
-    # Print empty rows for remaining guesses (if needed)
     for _ in range(11 - len(history)-1):  
         print("    " + "  ".join("o" for _ in range(6)) + " | 0 0  ")  
 
-    # Print guesses from bottom to top 
     for guess, feedback in reversed(history):
         guess_display = "    " + "  ".join(guess.ljust(6, 'o'))
         feedback_display = f"{feedback[0]} {feedback[1]}"
         print(f"{guess_display} | {feedback_display}  ")  
 
     print("   ==================+=====")
-
-
 
 # Validate the player's guess
 def validate_guess(guess, solution_length):
@@ -269,21 +258,20 @@ def validate_guess(guess, solution_length):
     return True, guess
 
 
-
-# Calculate feedback (red and white pins) based on the guess
+# Calculate play feedback 
 def calculate_feedback(guess, solution):
-    reds = sum(1 for g, s in zip(guess, solution) if g == s)
-    unmatched_guess = [g for g, s in zip(guess, solution) if g != s]
-    unmatched_solution = [s for g, s in zip(guess, solution) if g != s]
-    whites = 0
-    for digit in set(unmatched_guess):
-        whites += min(unmatched_guess.count(digit), unmatched_solution.count(digit))
-    return reds, whites
 
+    reds = sum(1 for g, s in zip(guess, solution) if g == s)
+
+    whites = 0
+    for digit in set(guess):  
+        whites += min(guess.count(digit), solution.count(digit))  
+
+    return reds, whites - reds  
 
 def game_loop(game):
     while game.attempts_left > 0:    
-        # Pass the solution to the display_board function
+
         display_board(game.solution, game.history)
         # print(game.solution)     
 
@@ -299,7 +287,7 @@ def game_loop(game):
                 game.save_game()
                 
                 print("Ending Game.")
-                return  # Save and exit
+                return  
 
             valid, message = validate_guess(initial_guess, len(game.solution))
             if not valid:
@@ -316,27 +304,18 @@ def game_loop(game):
             display_board(game.solution, game.history)
             game.history.insert(0, (guess, (feedback[0], feedback[1])))  
             print("Congratulations, you broke the lock!")
-            print("The grades are safe!")
-
-            
-            
-            break  # Exit if won
+            print("The grades are safe!")           
+            break 
 
     if game.attempts_left == 0:
-        display_board(game.solution, game.history,attempts_left_none=True)
-
-   
-        
+        display_board(game.solution, game.history,attempts_left_none=True)     
         print("You hear a machine yell OUT OF TRIES!")
         print("  ...")
         print("Is that burning you smell?")
         print("  ...")
         print("OH, NO! It looks like IU has destroyed all the EBEC grades!")
         print()
-
-        
-       
-
+      
 # Main function
 def main():
     intro_text = """
@@ -352,7 +331,7 @@ def main():
     Will you be able to break this lock before your grades are lost forever?
     """
     print(textwrap.dedent(intro_text).strip())
-
+    
     menu = GameMenu()
     while True:
         menu.display_menu()
@@ -374,7 +353,6 @@ def main():
                 menu.game.solution = solution
                 menu.game.attempts_left = attempts_left
                 menu.game.history = history
-                # print("\nLoaded Game:")
                 print("\nResume Game:")
                 print("--------------------------------------------------------------------------")
                 game_loop(menu.game)
